@@ -1,33 +1,55 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-const tintColorLight = "#0a7ea4";
-const tintColorDark = "#fff";
+const tintColorLight = "#14B8A6";
+const tintColorDark = "#67E8F9";
 
 export const Colors = {
   light: {
-    text: "#11181C",
-    background: "#fff",
+    text: "#E5EDF5",
+    mutedText: "#9FB0C3",
+    background: "#0F172A",
+    surface: "#172033",
+    surfaceElevated: "#202C44",
+    border: "#31415C",
     tint: tintColorLight,
-    icon: "#687076",
-    tabIconDefault: "#687076",
+    tintSurface: "#0D4A43",
+    accent: "#A78BFA",
+    icon: "#A8B6CA",
+    tabIconDefault: "#748299",
     tabIconSelected: tintColorLight,
+    danger: "#FCA5A5",
+    dangerSurface: "#431B2A",
+    error: "#EF4444",
+    errorSurface: "#431B2A",
+    success: "#86EFAC",
+    successSurface: "#173B2D",
   },
   dark: {
-    text: "#ECEDEE",
-    background: "#151718",
+    text: "#E5EDF5",
+    mutedText: "#9FB0C3",
+    background: "#0B1120",
+    surface: "#121B2F",
+    surfaceElevated: "#1A2740",
+    border: "#2D3E5B",
     tint: tintColorDark,
-    icon: "#9BA1A6",
-    tabIconDefault: "#9BA1A6",
+    tintSurface: "#0D4A43",
+    accent: "#C4B5FD",
+    icon: "#A8B6CA",
+    tabIconDefault: "#748299",
     tabIconSelected: tintColorDark,
+    danger: "#FCA5A5",
+    dangerSurface: "#431B2A",
+    error: "#EF4444",
+    errorSurface: "#431B2A",
+    success: "#86EFAC",
+    successSurface: "#173B2D",
   },
 };
 
 export const Fonts = {
-  sans: "normal",
+  sans: "Nunito_400Regular",
+  sansMedium: "Nunito_500Medium",
+  sansSemiBold: "Nunito_600SemiBold",
+  sansBold: "Nunito_700Bold",
   serif: "serif",
-  rounded: "normal",
+  rounded: "Nunito_400Regular",
   mono: "monospace",
 };

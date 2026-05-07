@@ -1,18 +1,17 @@
 import { ThemedText } from "@/components/themed-text";
-import { StyleSheet, View } from "react-native";
+import { Colors } from "@/constants/theme";
+import { View } from "react-native";
 
 export default function HomeScreen() {
   return (
-    <View style={styles.container}>
-      <ThemedText type="title">Good Vibes</ThemedText>
+    <View className="flex-1 items-center justify-center bg-background px-6">
+      <ThemedText type="title">Vibes</ThemedText>
+      <ThemedText
+        lightColor={Colors.light.mutedText}
+        className="mt-3 text-center"
+      >
+        Auth is ready. Music features come next.
+      </ThemedText>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
