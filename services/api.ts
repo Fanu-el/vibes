@@ -1,17 +1,17 @@
 import {
-    BaseQueryFn,
-    FetchArgs,
-    FetchBaseQueryError,
-    createApi,
-    fetchBaseQuery,
+  BaseQueryFn,
+  FetchArgs,
+  FetchBaseQueryError,
+  createApi,
+  fetchBaseQuery,
 } from "@reduxjs/toolkit/query/react";
 
 import { env } from "@/config/env";
 import {
-    deleteAuthTokens,
-    getAccessToken,
-    getRefreshToken,
-    setAuthTokens,
+  deleteAuthTokens,
+  getAccessToken,
+  getRefreshToken,
+  setAuthTokens,
 } from "@/hooks/use-storage";
 
 export interface SuccessResponse<T> {
@@ -112,11 +112,25 @@ const baseQueryWithReauth: BaseQueryFn<
 export const api = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Auth"],
+  tagTypes: [
+    "Auth",
+    "Libraries",
+    "LibraryItems",
+    "Playlists",
+    "PlaylistTracks",
+    "LikedTracks",
+    "LikedAlbums",
+    "LikedArtists",
+    "RecentlyPlayed",
+  ],
   endpoints: () => ({}),
 });
 
-export function unwrapApiResponse<T>(response: ApiResponse<T>) {
+export function unwrapApiResponse<T>(response: ApiResponse<T> | null | undefined) {
+  if (!response) {
+    return {} as T;
+  }
+
   if (response.is_error) {
     throw new Error(response.error.message);
   }

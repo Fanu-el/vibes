@@ -21,7 +21,6 @@ export function useSearchHistory() {
         setHistory(parsed);
       }
     } catch (error) {
-      console.error("Failed to load search history:", error);
       setHistory([]);
     } finally {
       setIsLoading(false);
@@ -53,7 +52,6 @@ export function useSearchHistory() {
           JSON.stringify(newHistory),
         );
       } catch (error) {
-        console.error("Failed to add to search history:", error);
       }
     },
     [history],
@@ -69,7 +67,6 @@ export function useSearchHistory() {
           JSON.stringify(filtered),
         );
       } catch (error) {
-        console.error("Failed to remove from search history:", error);
       }
     },
     [history],
@@ -80,7 +77,6 @@ export function useSearchHistory() {
       setHistory([]);
       await AsyncStorage.removeItem(SEARCH_HISTORY_KEY);
     } catch (error) {
-      console.error("Failed to clear search history:", error);
     }
   }, []);
 

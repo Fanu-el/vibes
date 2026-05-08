@@ -1,15 +1,24 @@
+import { musicMeApi } from "@/features/music-me/music-me-api";
+import { store } from "@/store";
 import {
-    createAudioPlayer,
-    setAudioModeAsync,
-    useAudioPlayerStatus,
+  createAudioPlayer,
+  setAudioModeAsync,
+  useAudioPlayerStatus,
 } from "expo-audio";
-import React, {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useState,
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+  ReactNode,
 } from "react";
+import {
+  useAuthState,
+  getPlaybackPosition,
+  savePlaybackPosition,
+} from "@/hooks/use-storage";
 
 export interface PlayerTrack {
   id: string;
@@ -36,7 +45,7 @@ const globalPlayer = createAudioPlayer(null);
 setAudioModeAsync({
   playsInSilentMode: true,
   shouldPlayInBackground: true,
-}).catch(console.error);
+}).catch(() => {});
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 interface PlayerContextValue {
@@ -53,9 +62,79 @@ interface PlayerContextValue {
 const PlayerContext = createContext<PlayerContextValue | null>(null);
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
-export function PlayerProvider({ children }: { children: React.ReactNode }) {
+export function PlayerProvider({ children }: { children: ReactNode }) {
   const [track, setTrack] = useState<PlayerTrack | null>(null);
   const playerStatus = useAudioPlayerStatus(globalPlayer);
+  const isAuthenticated = useAuthState();
+
+  // Fetch recently played to restore on app start
+  const { data: recentlyPlayed } = musicMeApi.endpoints.getRecentlyPlayed.useQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+
+  const initialLoadDone = useRef(false);
+
+  // 1. Restore previous playback session on app start
+  useEffect(() => {
+
+    
+    if (initialLoadDone.current || !recentlyPlayed || recentlyPlayed.length === 0 || track) return;
+    initialLoadDone.current = true;
+
+    async function restoreSession() {
+      const recent = recentlyPlayed![0];
+      if (!recent.track.streamUrl) return;
+
+      const saved = await getPlaybackPosition();
+      let positionToRestore = 0;
+
+      // Use local storage position only if it matches the recent track
+      if (saved && saved.trackId === recent.track.id) {
+        positionToRestore = saved.positionMs / 1000;
+      }
+
+      const pt: PlayerTrack = {
+        id: recent.track.id,
+        title: recent.track.title,
+        artistId: recent.track.artist.id,
+        artistName: recent.track.artist.name,
+        albumId: recent.track.album?.id,
+        albumName: recent.track.album?.name,
+        coverUrl: recent.track.coverUrl,
+        streamUrl: recent.track.streamUrl,
+        duration: recent.track.duration,
+      };
+
+      setTrack(pt);
+      globalPlayer.replace({ uri: pt.streamUrl });
+      
+      // Restore position but remain paused
+      if (positionToRestore > 0) {
+        await globalPlayer.seekTo(positionToRestore);
+      }
+      
+      globalPlayer.setActiveForLockScreen(true, {
+        title: pt.title,
+        artist: pt.artistName,
+        albumTitle: pt.albumName,
+        artworkUrl: pt.coverUrl,
+      });
+    }
+    restoreSession();
+  }, [recentlyPlayed, track]);
+
+  // 2. Save playback position on pause
+  const prevPlaying = useRef(false);
+  const currentPosMs = useRef(0);
+  currentPosMs.current = Math.floor((playerStatus.currentTime ?? 0) * 1000);
+
+  useEffect(() => {
+    // Detect transition from playing -> paused
+    if (prevPlaying.current && !playerStatus.playing && track) {
+      savePlaybackPosition(track.id, currentPosMs.current);
+    }
+    prevPlaying.current = playerStatus.playing;
+  }, [playerStatus.playing, track]);
 
   const status: PlaybackStatus = (() => {
     if (!track) return "idle";
@@ -80,6 +159,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       albumTitle: newTrack.albumName,
       artworkUrl: newTrack.coverUrl,
     });
+    // Log play to recently-played
+    store.dispatch(
+      musicMeApi.endpoints.logPlay.initiate({ providerId: newTrack.id }),
+    );
   }, []);
 
   const togglePlayPause = useCallback(() => {

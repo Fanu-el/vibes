@@ -1,9 +1,16 @@
 import { TrackCard } from "@/components/music-for-me/track-card";
+import { ActionsSheet } from "@/components/music-me/actions-sheet";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useGetAlbumTracksQuery } from "@/features/music-for-me/music-details-api";
 import type { Track } from "@/features/music-for-me/music-types";
+import {
+    useGetLikedAlbumsQuery,
+    useLikeAlbumMutation,
+    useUnlikeAlbumMutation,
+} from "@/features/music-me/music-me-api";
+import { showErrorToast, showSuccessToast } from "@/shared/feedback/toast";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { FlatList, Image, Pressable, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Divider, Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -24,6 +31,31 @@ export default function AlbumDetailScreen() {
   const [offset, setOffset] = useState(0);
   const [allTracks, setAllTracks] = useState<Track[]>([]);
   const [hasMore, setHasMore] = useState(true);
+
+  // Like state
+  const { data: likedAlbums = [] } = useGetLikedAlbumsQuery();
+  const [likeAlbum, { isLoading: liking }] = useLikeAlbumMutation();
+  const [unlikeAlbum, { isLoading: unliking }] = useUnlikeAlbumMutation();
+  const isLiked = useMemo(
+    () => likedAlbums.some((a) => a.providerId === id),
+    [likedAlbums, id],
+  );
+
+  const [librarySheetOpen, setLibrarySheetOpen] = useState(false);
+
+  const handleLike = async () => {
+    try {
+      if (isLiked) {
+        await unlikeAlbum(id).unwrap();
+        showSuccessToast("Removed from likes.");
+      } else {
+        await likeAlbum(id).unwrap();
+        showSuccessToast("Added to likes!");
+      }
+    } catch {
+      showErrorToast("Failed to update likes.");
+    }
+  };
 
   const { data, isLoading, error } = useGetAlbumTracksQuery({
     albumId: id,
@@ -76,7 +108,37 @@ export default function AlbumDetailScreen() {
         >
           Album
         </Text>
-        <View style={styles.backButton} />
+        <View style={styles.headerActions}>
+          {/* Like */}
+          <Pressable
+            onPress={handleLike}
+            style={styles.iconBtn}
+            disabled={liking || unliking}
+            hitSlop={8}
+          >
+            {liking || unliking ? (
+              <ActivityIndicator size={20} color={theme.colors.primary} />
+            ) : (
+              <IconSymbol
+                name={isLiked ? "heart.fill" : "heart"}
+                size={22}
+                color={isLiked ? "#ef4444" : theme.colors.onSurfaceVariant}
+              />
+            )}
+          </Pressable>
+          {/* Add to Library */}
+          <Pressable
+            onPress={() => setLibrarySheetOpen(true)}
+            style={styles.iconBtn}
+            hitSlop={8}
+          >
+            <IconSymbol
+              name="books.vertical.fill"
+              size={22}
+              color={theme.colors.onSurfaceVariant}
+            />
+          </Pressable>
+        </View>
       </View>
 
       <FlatList
@@ -151,7 +213,6 @@ export default function AlbumDetailScreen() {
                       coverUrl: item.coverUrl || "",
                       duration: item.duration.toString(),
                       releaseDate: item.releaseDate || "",
-                      license: item.license || "",
                       streamUrl: item.streamUrl || "",
                       genres: item.tags?.genres?.join(",") || "",
                       instruments: item.tags?.instruments?.join(",") || "",
@@ -176,6 +237,15 @@ export default function AlbumDetailScreen() {
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
         contentContainerStyle={styles.content}
+      />
+
+      <ActionsSheet
+        visible={librarySheetOpen}
+        onClose={() => setLibrarySheetOpen(false)}
+        itemType="ALBUM"
+        providerId={id ?? ""}
+        title={name ?? "Album"}
+        initialView="libraries"
       />
     </SafeAreaView>
   );
@@ -203,6 +273,16 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     flex: 1,
     textAlign: "center",
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  iconBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
     alignItems: "center",

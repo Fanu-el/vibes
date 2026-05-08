@@ -28,7 +28,8 @@
         "android.permission.READ_MEDIA_VIDEO",
         "android.permission.READ_MEDIA_AUDIO"
       ],
-      "package": "com.fanu_dev_expo.vibes"
+      "package": "com.fanu_dev_expo.vibes",
+      "enableSplitApks": true
     },
     "plugins": [
       "expo-router",

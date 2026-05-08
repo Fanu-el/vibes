@@ -12,7 +12,7 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { Stack, router, usePathname } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -100,6 +100,8 @@ function RootNavigator() {
           options={{ animation: "fade", headerShown: false }}
         />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="library/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="playlist/[id]" options={{ headerShown: false }} />
       </Stack>
       <ConditionalMusicPlayer />
       <StatusBar style="light" />
@@ -122,12 +124,11 @@ export default function RootLayout() {
   }, [fontsLoaded]);
 
   useEffect(() => {
-    // Set up callback for when refresh token fails
+    // When the refresh token fails, tokens are already cleared in api.ts.
+    // The reactive useAuth() in (tabs)/_layout.tsx will detect isAuthenticated=false
+    // and redirect to login automatically — just show a toast here.
     setRefreshTokenFailedCallback(() => {
       showErrorToast("Your session has expired. Please log in again.");
-      setTimeout(() => {
-        router.replace("/(auth)/login");
-      }, 100);
     });
   }, []);
 

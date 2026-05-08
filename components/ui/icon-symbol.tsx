@@ -16,6 +16,17 @@ const MAPPING = {
   "gobackward.15": "replay-10",
   "goforward.15": "forward-10",
   "chevron.down": "keyboard-arrow-down",
+  "person.fill": "person",
+  "heart.fill": "favorite",
+  heart: "favorite-border",
+  "clock.fill": "history",
+  "books.vertical.fill": "library-books",
+  "music.note.list.fill": "queue-music",
+  plus: "add",
+  trash: "delete",
+  "checkmark.circle.fill": "check-circle",
+  "checkmark.circle": "check-circle-outline",
+  pencil: "edit",
 } as const;
 
 type IconSymbolName = keyof typeof MAPPING;

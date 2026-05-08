@@ -123,16 +123,7 @@ export const authApi = api.injectEndpoints({
         body: toLoginPayload(body),
       }),
       transformResponse: (response: ApiResponse<AuthTokens>) => {
-        console.log(
-          "Login API raw response:",
-          JSON.stringify(response, null, 2),
-        );
-        const unwrapped = unwrapApiResponse(response);
-        console.log(
-          "Login API unwrapped data:",
-          JSON.stringify(unwrapped, null, 2),
-        );
-        return unwrapped;
+        return unwrapApiResponse(response);
       },
     }),
     getMe: builder.query<User, void>({
