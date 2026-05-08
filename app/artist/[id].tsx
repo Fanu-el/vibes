@@ -2,19 +2,25 @@ import { AlbumCard } from "@/components/music-for-me/album-card";
 import { TrackCard } from "@/components/music-for-me/track-card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import {
-  useGetArtistAlbumsQuery,
-  useGetArtistTracksQuery,
+    useGetArtistAlbumsQuery,
+    useGetArtistTracksQuery,
 } from "@/features/music-for-me/music-details-api";
 import type { Album, Track } from "@/features/music-for-me/music-types";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  Pressable,
-  StyleSheet,
-  View,
+    useGetLikedArtistsQuery,
+    useLikeArtistMutation,
+    useUnlikeArtistMutation,
+} from "@/features/music-me/music-me-api";
+import { showErrorToast, showSuccessToast } from "@/shared/feedback/toast";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useCallback, useMemo, useState } from "react";
+import {
+    ActivityIndicator,
+    FlatList,
+    Image,
+    Pressable,
+    StyleSheet,
+    View,
 } from "react-native";
 import { Button, Divider, Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -40,6 +46,29 @@ export default function ArtistDetailScreen() {
   const [allAlbums, setAllAlbums] = useState<Album[]>([]);
   const [hasMoreTracks, setHasMoreTracks] = useState(true);
   const [hasMoreAlbums, setHasMoreAlbums] = useState(true);
+
+  const { data: likedArtists = [] } = useGetLikedArtistsQuery();
+  const [likeArtist, { isLoading: liking }] = useLikeArtistMutation();
+  const [unlikeArtist, { isLoading: unliking }] = useUnlikeArtistMutation();
+
+  const isLiked = useMemo(
+    () => likedArtists.some((a) => a.providerId === id),
+    [likedArtists, id],
+  );
+
+  const handleLike = async () => {
+    try {
+      if (isLiked) {
+        await unlikeArtist(id).unwrap();
+        showSuccessToast("Removed from favorites.");
+      } else {
+        await likeArtist(id).unwrap();
+        showSuccessToast("Added to favorites!");
+      }
+    } catch {
+      showErrorToast("Failed to update favorites.");
+    }
+  };
 
   const {
     data: tracksData,
@@ -126,7 +155,22 @@ export default function ArtistDetailScreen() {
         >
           Artist
         </Text>
-        <View style={styles.backButton} />
+        <Pressable
+          onPress={handleLike}
+          style={styles.backButton}
+          disabled={liking || unliking}
+          hitSlop={8}
+        >
+          {liking || unliking ? (
+            <ActivityIndicator size={20} color={theme.colors.primary} />
+          ) : (
+            <IconSymbol
+              name={isLiked ? "heart.fill" : "heart"}
+              size={22}
+              color={isLiked ? "#ef4444" : theme.colors.onSurfaceVariant}
+            />
+          )}
+        </Pressable>
       </View>
 
       <FlatList
@@ -222,7 +266,6 @@ export default function ArtistDetailScreen() {
                     coverUrl: item.coverUrl || "",
                     duration: item.duration.toString(),
                     releaseDate: item.releaseDate || "",
-                    license: item.license || "",
                     streamUrl: item.streamUrl || "",
                     genres: item.tags?.genres?.join(",") || "",
                     instruments: item.tags?.instruments?.join(",") || "",

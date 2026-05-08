@@ -5,21 +5,25 @@ import { SearchModal } from "@/components/search/search-modal";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useGetMeQuery } from "@/features/auth/auth-api";
 import {
-  useGetAlbumsQuery,
-  useGetArtistsQuery,
-  useGetTracksQuery,
+    useGetAlbumsQuery,
+    useGetArtistsQuery,
+    useGetTracksQuery,
 } from "@/features/music-for-me/music-for-me-api";
+import {
+    useGetLikedArtistsQuery,
+    useGetLikedTracksQuery,
+} from "@/features/music-me/music-me-api";
 import type { Album, Artist, Track } from "@/features/music-for-me/music-types";
 import { MusicSectionSkeleton } from "@/shared/ui/components/skeletons";
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
-  FlatList,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  View,
+    FlatList,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    View,
 } from "react-native";
 import { Button, Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -32,6 +36,12 @@ export default function HomeScreen() {
 
   const [searchVisible, setSearchVisible] = useState(false);
   const { data: user } = useGetMeQuery();
+
+  // Liked data
+  const { data: likedTracks = [] } = useGetLikedTracksQuery();
+  const { data: likedArtists = [] } = useGetLikedArtistsQuery();
+  const likedTrackIds = new Set(likedTracks.map((t) => t.providerId));
+  const likedArtistIds = new Set(likedArtists.map((a) => a.providerId));
 
   // Pagination states
   const [tracksOffset, setTracksOffset] = useState(0);
@@ -230,7 +240,6 @@ export default function HomeScreen() {
                         coverUrl: item.coverUrl || "",
                         duration: item.duration.toString(),
                         releaseDate: item.releaseDate || "",
-                        license: item.license || "",
                         streamUrl: item.streamUrl || "",
                         genres: item.tags?.genres?.join(",") || "",
                         instruments: item.tags?.instruments?.join(",") || "",
@@ -240,6 +249,7 @@ export default function HomeScreen() {
                       },
                     });
                   }}
+                  isLiked={likedTrackIds.has(item.id)}
                 />
               )}
               showsHorizontalScrollIndicator={false}
@@ -249,6 +259,52 @@ export default function HomeScreen() {
             />
           </View>
         ) : null}
+
+        {/* Liked Tracks Section */}
+        {likedTracks.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+                Liked Tracks
+              </Text>
+            </View>
+            <FlatList
+              horizontal
+              data={likedTracks}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <HorizontalTrackCard
+                  item={item.track}
+                  onPress={() => {
+                    router.push({
+                      pathname: "/track/[id]",
+                      params: {
+                        id: item.track.id,
+                        title: item.track.title,
+                        artistId: item.track.artist.id,
+                        artistName: item.track.artist.name,
+                        albumId: item.track.album?.id || "",
+                        albumName: item.track.album?.name || "",
+                        coverUrl: item.track.coverUrl || "",
+                        duration: item.track.duration.toString(),
+                        releaseDate: item.track.releaseDate || "",
+                        streamUrl: item.track.streamUrl || "",
+                        genres: item.track.tags?.genres?.join(",") || "",
+                        instruments: item.track.tags?.instruments?.join(",") || "",
+                        mood: item.track.tags?.mood?.join(",") || "",
+                        speed: item.track.tags?.speed || "",
+                        vocalType: item.track.tags?.vocalType || "",
+                      },
+                    });
+                  }}
+                  isLiked={true}
+                />
+              )}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalList}
+            />
+          </View>
+        )}
 
         {/* Albums Section */}
         {isLoadingAlbums && allAlbums.length === 0 ? (
@@ -342,6 +398,7 @@ export default function HomeScreen() {
                       },
                     });
                   }}
+                  isFavorited={likedArtistIds.has(item.id)}
                 />
               )}
               showsHorizontalScrollIndicator={false}
@@ -351,6 +408,42 @@ export default function HomeScreen() {
             />
           </View>
         ) : null}
+
+        {/* Liked Artists Section */}
+        {likedArtists.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+                Favorite Artists
+              </Text>
+            </View>
+            <FlatList
+              horizontal
+              data={likedArtists}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <HorizontalArtistCard
+                  item={item.artist}
+                  onPress={() => {
+                    router.push({
+                      pathname: "/artist/[id]",
+                      params: {
+                        id: item.artist.id,
+                        name: item.artist.name,
+                        imageUrl: item.artist.imageUrl || "",
+                        website: item.artist.website || "",
+                        joinDate: item.artist.joinDate || "",
+                      },
+                    });
+                  }}
+                  isFavorited={true}
+                />
+              )}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalList}
+            />
+          </View>
+        )}
 
         {/* Empty state — all loaded, nothing returned */}
         {!isLoadingTracks &&

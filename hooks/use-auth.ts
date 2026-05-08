@@ -1,6 +1,6 @@
-import { getAccessToken } from "./use-storage";
+import { useAuthState } from "./use-storage";
 
 export function useAuth() {
-  const isAuthenticated = Boolean(getAccessToken());
+  const isAuthenticated = useAuthState();
   return { isAuthenticated };
 }

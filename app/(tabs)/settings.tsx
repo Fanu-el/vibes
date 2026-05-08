@@ -19,7 +19,7 @@ export default function SettingsScreen() {
     try {
       await logout().unwrap();
     } catch (logoutError) {
-      console.error("Logout API error:", logoutError);
+      // Ignore API errors on logout
     } finally {
       await deleteAuthTokens();
       setShowLogoutConfirm(false);

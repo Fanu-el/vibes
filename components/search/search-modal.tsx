@@ -8,21 +8,21 @@ import { useSearchHistory } from "@/hooks/use-search-history";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  FlatList,
-  Keyboard,
-  Modal,
-  Pressable,
-  StyleSheet,
-  View,
+    FlatList,
+    Keyboard,
+    Modal,
+    Pressable,
+    StyleSheet,
+    View,
 } from "react-native";
 import {
-  ActivityIndicator,
-  Chip,
-  Divider,
-  IconButton,
-  Searchbar,
-  Text,
-  useTheme,
+    ActivityIndicator,
+    Chip,
+    Divider,
+    IconButton,
+    Searchbar,
+    Text,
+    useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -112,7 +112,6 @@ export function SearchModal({ visible, onClose }: SearchModalProps) {
         coverUrl: item.coverUrl ?? "",
         duration: item.duration.toString(),
         releaseDate: item.releaseDate ?? "",
-        license: item.license ?? "",
         streamUrl: item.streamUrl ?? "",
         genres: item.tags?.genres?.join(",") ?? "",
         instruments: item.tags?.instruments?.join(",") ?? "",

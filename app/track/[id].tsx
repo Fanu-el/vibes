@@ -1,10 +1,23 @@
+import { ActionsSheet } from "@/components/music-me/actions-sheet";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import {
+    useGetLikedTracksQuery,
+    useLikeTrackMutation,
+    useUnlikeTrackMutation,
+} from "@/features/music-me/music-me-api";
 import { usePlayer } from "@/hooks/use-player";
-import { showErrorToast } from "@/shared/feedback/toast";
+import { showErrorToast, showSuccessToast } from "@/shared/feedback/toast";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { Image, Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { Button, Chip, Divider, Text, useTheme } from "react-native-paper";
+import {
+    ActivityIndicator,
+    Button,
+    Chip,
+    Divider,
+    Text,
+    useTheme,
+} from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function TrackDetailScreen() {
@@ -20,7 +33,6 @@ export default function TrackDetailScreen() {
     coverUrl,
     duration,
     releaseDate,
-    license,
     streamUrl,
     genres,
     instruments,
@@ -37,7 +49,6 @@ export default function TrackDetailScreen() {
     coverUrl?: string;
     duration: string;
     releaseDate?: string;
-    license?: string;
     streamUrl?: string;
     genres?: string;
     instruments?: string;
@@ -47,6 +58,21 @@ export default function TrackDetailScreen() {
   }>();
 
   const { play, status, track: currentTrack, togglePlayPause } = usePlayer();
+
+  // Like state
+  const { data: likedTracks = [] } = useGetLikedTracksQuery();
+  const [likeTrack, { isLoading: liking }] = useLikeTrackMutation();
+  const [unlikeTrack, { isLoading: unliking }] = useUnlikeTrackMutation();
+  const isLiked = useMemo(
+    () => likedTracks.some((t) => t.providerId === id),
+    [likedTracks, id],
+  );
+
+  // Add-to sheet (library / playlist picker)
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetMode, setSheetMode] = useState<"libraries" | "playlists">(
+    "libraries",
+  );
 
   const isThisTrackPlaying =
     currentTrack?.id === id && (status === "playing" || status === "loading");
@@ -80,6 +106,20 @@ export default function TrackDetailScreen() {
     });
   };
 
+  const handleLike = async () => {
+    try {
+      if (isLiked) {
+        await unlikeTrack(id ?? "").unwrap();
+        showSuccessToast("Removed from likes.");
+      } else {
+        await likeTrack(id ?? "").unwrap();
+        showSuccessToast("Added to likes!");
+      }
+    } catch {
+      showErrorToast("Failed to update likes.");
+    }
+  };
+
   const genresList = genres ? genres.split(",").filter(Boolean) : [];
   const instrumentsList = instruments
     ? instruments.split(",").filter(Boolean)
@@ -92,17 +132,70 @@ export default function TrackDetailScreen() {
     >
       {/* Header */}
       <View style={styles.customHeader}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
+        <Pressable onPress={() => router.back()} style={styles.iconBtn}>
           <IconSymbol
             name="chevron.left"
             size={24}
             color={theme.colors.primary}
           />
         </Pressable>
+
         <Text style={[styles.headerTitle, { color: theme.colors.onSurface }]}>
           Track
         </Text>
-        <View style={styles.backButton} />
+
+        {/* Action icons */}
+        <View style={styles.headerActions}>
+          {/* Like */}
+          <Pressable
+            onPress={handleLike}
+            style={styles.iconBtn}
+            disabled={liking || unliking}
+            hitSlop={8}
+          >
+            {liking || unliking ? (
+              <ActivityIndicator size={20} color={theme.colors.primary} />
+            ) : (
+              <IconSymbol
+                name={isLiked ? "heart.fill" : "heart"}
+                size={22}
+                color={isLiked ? "#ef4444" : theme.colors.onSurfaceVariant}
+              />
+            )}
+          </Pressable>
+
+          {/* Add to Library */}
+          <Pressable
+            onPress={() => {
+              setSheetMode("libraries");
+              setSheetOpen(true);
+            }}
+            style={styles.iconBtn}
+            hitSlop={8}
+          >
+            <IconSymbol
+              name="books.vertical.fill"
+              size={22}
+              color={theme.colors.onSurfaceVariant}
+            />
+          </Pressable>
+
+          {/* Add to Playlist */}
+          <Pressable
+            onPress={() => {
+              setSheetMode("playlists");
+              setSheetOpen(true);
+            }}
+            style={styles.iconBtn}
+            hitSlop={8}
+          >
+            <IconSymbol
+              name="music.note.list.fill"
+              size={22}
+              color={theme.colors.onSurfaceVariant}
+            />
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView style={styles.content}>
@@ -161,7 +254,6 @@ export default function TrackDetailScreen() {
           >
             Track Information
           </Text>
-
           <View style={styles.infoRow}>
             <Text
               style={[
@@ -175,7 +267,6 @@ export default function TrackDetailScreen() {
               {formatDuration(duration)}
             </Text>
           </View>
-
           {releaseDate ? (
             <View style={styles.infoRow}>
               <Text
@@ -190,24 +281,6 @@ export default function TrackDetailScreen() {
                 style={[styles.infoValue, { color: theme.colors.onSurface }]}
               >
                 {releaseDate}
-              </Text>
-            </View>
-          ) : null}
-
-          {license ? (
-            <View style={styles.infoRow}>
-              <Text
-                style={[
-                  styles.infoLabel,
-                  { color: theme.colors.onSurfaceVariant },
-                ]}
-              >
-                License:
-              </Text>
-              <Text
-                style={[styles.infoValue, { color: theme.colors.onSurface }]}
-              >
-                {license}
               </Text>
             </View>
           ) : null}
@@ -227,7 +300,6 @@ export default function TrackDetailScreen() {
               >
                 Tags
               </Text>
-
               {genresList.length > 0 && (
                 <View style={styles.tagGroup}>
                   <Text
@@ -247,7 +319,6 @@ export default function TrackDetailScreen() {
                   </View>
                 </View>
               )}
-
               {instrumentsList.length > 0 && (
                 <View style={styles.tagGroup}>
                   <Text
@@ -267,7 +338,6 @@ export default function TrackDetailScreen() {
                   </View>
                 </View>
               )}
-
               {moodList.length > 0 && (
                 <View style={styles.tagGroup}>
                   <Text
@@ -287,7 +357,6 @@ export default function TrackDetailScreen() {
                   </View>
                 </View>
               )}
-
               {speed && (
                 <View style={styles.tagGroup}>
                   <Text
@@ -301,7 +370,6 @@ export default function TrackDetailScreen() {
                   <Chip style={styles.chip}>{speed}</Chip>
                 </View>
               )}
-
               {vocalType && (
                 <View style={styles.tagGroup}>
                   <Text
@@ -319,6 +387,16 @@ export default function TrackDetailScreen() {
           </>
         )}
       </ScrollView>
+
+      {/* Sheet opens directly to library or playlist view */}
+      <ActionsSheet
+        visible={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        itemType="TRACK"
+        providerId={id ?? ""}
+        title={title ?? "Track"}
+        initialView={sheetMode}
+      />
     </SafeAreaView>
   );
 }
@@ -328,21 +406,24 @@ const styles = StyleSheet.create({
   customHeader: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 8,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
     flex: 1,
     textAlign: "center",
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  iconBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   content: { flex: 1 },
   header: { alignItems: "center", padding: 24 },

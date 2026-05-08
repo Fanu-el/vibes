@@ -60,7 +60,6 @@ export function useDownload() {
       setDownloadStatus("idle");
       return { success: true, filename: resolvedFilename };
     } catch (e: any) {
-      console.error("Download error:", e);
       setDownloadStatus("error");
       return { success: false, error: e?.message ?? "Unknown error" };
     }
