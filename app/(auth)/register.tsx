@@ -3,21 +3,21 @@ import * as Device from "expo-device";
 import { router } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
 import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  View,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    View,
 } from "react-native";
 import { Button, HelperText, TextInput } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import { useRegisterMutation } from "@/features/auth/auth-api";
 import {
-  RegisterFormValues,
-  registerSchema,
+    RegisterFormValues,
+    registerSchema,
 } from "@/features/auth/auth-schemas";
 import { authStyles } from "@/features/auth/auth-screen-styles";
 import { getApiErrorMessage } from "@/services/api";
@@ -68,7 +68,7 @@ export default function RegisterScreen() {
   }
 
   return (
-    <ThemedView className="flex-1 bg-background" style={authStyles.screen}>
+    <SafeAreaView style={authStyles.screen} edges={["top", "bottom"]}>
       <KeyboardAvoidingView
         behavior={Platform.select({ ios: "padding", default: undefined })}
         className="flex-1"
@@ -234,6 +234,6 @@ export default function RegisterScreen() {
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
-    </ThemedView>
+    </SafeAreaView>
   );
 }

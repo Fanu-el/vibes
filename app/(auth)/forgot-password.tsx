@@ -2,18 +2,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
 import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  View,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    View,
 } from "react-native";
 import { Button, HelperText, TextInput } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import { useForgotPasswordMutation } from "@/features/auth/auth-api";
 import { authStyles } from "@/features/auth/auth-screen-styles";
 import { getApiErrorMessage } from "@/services/api";
@@ -62,7 +62,7 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <ThemedView className="flex-1 bg-background" style={authStyles.screen}>
+    <SafeAreaView style={authStyles.screen} edges={["top", "bottom"]}>
       <KeyboardAvoidingView
         behavior={Platform.select({ ios: "padding", default: undefined })}
         className="flex-1"
@@ -128,6 +128,6 @@ export default function ForgotPasswordScreen() {
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
-    </ThemedView>
+    </SafeAreaView>
   );
 }
