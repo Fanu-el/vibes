@@ -3,24 +3,24 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  View,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    View,
 } from "react-native";
 import { Button, HelperText, TextInput } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import {
-  useResendVerificationMutation,
-  useVerifyEmailMutation,
+    useResendVerificationMutation,
+    useVerifyEmailMutation,
 } from "@/features/auth/auth-api";
 import {
-  VerifyEmailFormValues,
-  verifyEmailSchema,
+    VerifyEmailFormValues,
+    verifyEmailSchema,
 } from "@/features/auth/auth-schemas";
 import { authStyles } from "@/features/auth/auth-screen-styles";
 import { getApiErrorMessage } from "@/services/api";
@@ -85,7 +85,7 @@ export default function VerifyEmailScreen() {
   }
 
   return (
-    <ThemedView className="flex-1 bg-background" style={authStyles.screen}>
+    <SafeAreaView style={authStyles.screen} edges={["top", "bottom"]}>
       <KeyboardAvoidingView
         behavior={Platform.select({ ios: "padding", default: undefined })}
         className="flex-1"
@@ -156,6 +156,6 @@ export default function VerifyEmailScreen() {
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
-    </ThemedView>
+    </SafeAreaView>
   );
 }

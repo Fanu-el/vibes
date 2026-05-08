@@ -1,3 +1,5 @@
+import { MusicPlayer } from "@/components/player/music-player";
+import { PlayerProvider } from "@/context/player-context";
 import {
   Nunito_400Regular,
   Nunito_500Medium,
@@ -10,7 +12,7 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { Stack, router } from "expo-router";
+import { Stack, router, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -54,8 +56,58 @@ const navigationFonts = {
   },
 };
 
-export default function RootLayout() {
+// Routes where the mini player should not appear
+const PLAYER_HIDDEN_ROUTES = ["/settings", "/edit-profile"];
+
+function ConditionalMusicPlayer() {
+  const pathname = usePathname();
+  const isHidden = PLAYER_HIDDEN_ROUTES.some((route) =>
+    pathname.startsWith(route),
+  );
+  if (isHidden) return null;
+  return <MusicPlayer />;
+}
+
+function RootNavigator() {
   const colorScheme = useColorScheme();
+
+  const baseTheme = colorScheme === "dark" ? DarkTheme : DefaultTheme;
+  const theme = {
+    ...baseTheme,
+    colors: {
+      ...baseTheme.colors,
+      background: Colors.light.background,
+      card: Colors.light.background,
+      text: Colors.light.text,
+      border: Colors.light.border,
+      primary: Colors.light.tint,
+    },
+    fonts: navigationFonts,
+  };
+
+  return (
+    <ThemeProvider value={theme}>
+      <Stack
+        screenOptions={{
+          contentStyle: {
+            backgroundColor: Colors.light.background,
+          },
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen
+          name="(auth)"
+          options={{ animation: "fade", headerShown: false }}
+        />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+      <ConditionalMusicPlayer />
+      <StatusBar style="light" />
+    </ThemeProvider>
+  );
+}
+
+export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     Nunito_400Regular,
     Nunito_500Medium,
@@ -83,40 +135,13 @@ export default function RootLayout() {
     return null;
   }
 
-  const baseTheme = colorScheme === "dark" ? DarkTheme : DefaultTheme;
-  const theme = {
-    ...baseTheme,
-    colors: {
-      ...baseTheme.colors,
-      background: Colors.light.background,
-      card: Colors.light.background,
-      text: Colors.light.text,
-      border: Colors.light.border,
-      primary: Colors.light.tint,
-    },
-    fonts: navigationFonts,
-  };
-
   return (
     <SafeAreaProvider>
       <Provider store={store}>
         <PaperProvider theme={paperTheme}>
-          <ThemeProvider value={theme}>
-            <Stack
-              screenOptions={{
-                contentStyle: {
-                  backgroundColor: Colors.light.background,
-                },
-              }}
-            >
-              <Stack.Screen
-                name="(auth)"
-                options={{ animation: "fade", headerShown: false }}
-              />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            </Stack>
-            <StatusBar style="light" />
-          </ThemeProvider>
+          <PlayerProvider>
+            <RootNavigator />
+          </PlayerProvider>
         </PaperProvider>
         <Toast config={toastConfig} />
       </Provider>
