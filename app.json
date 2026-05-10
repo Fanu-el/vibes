@@ -28,11 +28,11 @@
         "android.permission.READ_MEDIA_VIDEO",
         "android.permission.READ_MEDIA_AUDIO"
       ],
-      "package": "com.fanu_dev_expo.vibes",
-      "enableSplitApks": true
+      "package": "com.fanu_dev_expo.vibes"
     },
     "plugins": [
       "expo-router",
+      "./plugins/withAndroidAbiSplits",
       [
         "expo-splash-screen",
         {
@@ -63,6 +63,12 @@
     },
     "web": {
       "bundler": "metro"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "db383512-a7aa-4c84-8252-288b21931968"
+      }
     }
   }
 }

@@ -1,0 +1,39 @@
+{
+  "cli": {
+    "version": ">= 15.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk",
+        "applicationArchivePath": "android/app/build/outputs/apk/**/*.apk"
+      },
+      "env": {
+        "ENABLE_ANDROID_ABI_SPLITS": "true",
+        "EXPO_PUBLIC_BASE_API_URL": "https://vibes-api-cyan.vercel.app/api/",
+        "EXPO_PUBLIC_API_FILE_PREVIEW_URL": "http://10.0.2.2:4591/api/"
+      }
+    },
+    "staging": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_BASE_API_URL": "https://vibes-api-cyan.vercel.app/api/",
+        "EXPO_PUBLIC_API_FILE_PREVIEW_URL": "http://10.0.2.2:4591/api/"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_BASE_API_URL": "https://vibes-api-cyan.vercel.app/api/",
+        "EXPO_PUBLIC_API_FILE_PREVIEW_URL": "http://10.0.2.2:4591/api/"
+      }
+    }
+  }
+}
