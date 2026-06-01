@@ -3,11 +3,11 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start",
+    "start": "node init && expo start",
     "android": "expo run:android",
-    "build:android:dev": "eas build -p android --profile development",
-    "build:android:staging": "eas build -p android --profile staging",
-    "build:android:prod": "eas build -p android --profile production",
+    "build:android:dev": "node init && eas build -p android --profile development",
+    "build:android:staging": "node init && eas build -p android --profile staging",
+    "build:android:prod": "node init && eas build -p android --profile production",
     "lint": "expo lint",
     "ios": "expo run:ios"
   },
